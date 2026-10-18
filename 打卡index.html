@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="大肥鱼打卡">
+<meta name="theme-color" content="#0a1a33">
+<title>大肥鱼打卡</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  :root{
+    --blue:#4da3ff;--blue-deep:#1e6fd9;--cyan:#5eead4;
+    --card:rgba(255,255,255,.065);--line:rgba(255,255,255,.11);
+    --text:#eaf2ff;--muted:#8ba3c7;color-scheme:dark;
+  }
+  html,body{min-height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:radial-gradient(circle at 15% -10%,#1d539e 0%,#0a1a33 48%,#050d1a 100%);
+    background-attachment:fixed;color:var(--text);
+    max-width:560px;margin:0 auto;
+    padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 44px);
+    overflow-x:hidden;
+  }
+  .bubbles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .bubbles i{position:absolute;bottom:-70px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%,rgba(150,205,255,.4),rgba(80,150,255,.04));
+    animation:rise linear infinite}
+  @keyframes rise{0%{transform:translateY(0);opacity:0}10%{opacity:1}100%{transform:translateY(-115vh) scale(1.3);opacity:0}}
+
+  .hero{position:relative;z-index:1;text-align:center;padding-top:4px}
+  
+  /* 头像点击区域 */
+  .mascot-wrap{position:relative;width:148px;margin:0 auto;cursor:pointer;animation:float 3.8s ease-in-out infinite;filter:drop-shadow(0 10px 24px rgba(77,163,255,.35))}
+  .mascot-wrap:active{transform:scale(0.95)}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  .mascot-img{width:100%;height:100%;object-fit:contain;border-radius:20px;display:block}
+  .mascot-tip{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap;background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:10px;opacity:0;transition:opacity .3s}
+  .mascot-wrap:hover .mascot-tip{opacity:1}
+
+  h1{font-size:26px;font-weight:800;letter-spacing:3px;margin-top:16px;
+    background:linear-gradient(90deg,#9ad8ff,#5eead4 55%,#9ad8ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:1px}
+
+  .panel{position:relative;z-index:1;
+    background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.035));
+    border:1px solid var(--line);border-radius:20px;padding:16px;margin-top:14px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 8px 26px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08)}
+
+  input{background:rgba(8,22,44,.65);border:1px solid var(--line);color:var(--text);
+    border-radius:12px;padding:12px 14px;font-size:15px;font-family:inherit;outline:none;
+    transition:border-color .2s,box-shadow .2s;min-width:0}
+  input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(77,163,255,.18)}
+  input::placeholder{color:#5f7597}
+  .row{display:flex;gap:9px;align-items:center}
+  .row + .row{margin-top:11px}
+  input[type=text]{flex:1}
+  input[type=date]{flex:0 0 auto;width:auto}
+
+  button{border:0;border-radius:12px;padding:12px 16px;font-size:15px;font-family:inherit;
+    font-weight:600;cursor:pointer;transition:transform .15s,filter .2s}
+  button:active{transform:scale(.96)}
+  .btn-main{background:linear-gradient(135deg,#4da3ff,#1e6fd9);color:#fff;
+    box-shadow:0 6px 18px rgba(30,111,217,.45)}
+
+  .statline{display:flex;justify-content:space-between;align-items:baseline;
+    font-size:13px;color:var(--muted);margin-top:14px}
+  .statline b{font-size:20px;color:var(--cyan);font-weight:800;margin:0 2px}
+  .progress{height:10px;background:rgba(8,22,44,.75);border-radius:99px;margin-top:10px;position:relative}
+  .progress .fill{height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,#1e6fd9,#4da3ff,#5eead4);
+    box-shadow:0 0 16px rgba(94,234,212,.55);
+    transition:width .55s cubic-bezier(.4,0,.2,1)}
+  .progress .fish{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);
+    font-size:17px;transition:left .55s cubic-bezier(.4,0,.2,1);
+    filter:drop-shadow(0 0 5px rgba(94,234,212,.9))}
+
+  .card{position:relative;z-index:1;
+    background:linear-gradient(160deg,rgba(255,255,255,.085),rgba(255,255,255,.03));
+    border:1px solid var(--line);border-radius:18px;padding:15px;margin-top:12px;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    box-shadow:0 6px 20px rgba(0,0,0,.22)}
+  .card-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .name{font-size:16px;font-weight:700;word-break:break-all}
+  .meta{font-size:12px;color:var(--muted);white-space:nowrap}
+
+  .days{display:flex;gap:5px;margin:14px 0 13px}
+  .days i{flex:1;aspect-ratio:1;border-radius:6px;cursor:pointer;
+    background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.06);
+    transition:background .2s,box-shadow .2s,transform .15s}
+  .days i.on{background:linear-gradient(135deg,#4da3ff,#5eead4);border-color:transparent;
+    box-shadow:0 0 12px rgba(94,234,212,.55)}
+  .days i.today{outline:2px solid rgba(94,234,212,.85);outline-offset:1px}
+  .days i.before{background:rgba(255,255,255,.015);cursor:default;opacity:.4}
+  .days i:active{transform:scale(.88)}
+  .days i.pop{animation:pop .4s ease}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+  .actions{display:flex;gap:9px}
+  .btn-do{flex:1;background:linear-gradient(135deg,#4da3ff,#1e6fd9);color:#fff;
+    box-shadow:0 6px 16px rgba(30,111,217,.4)}
+  .btn-done{flex:1;background:rgba(94,234,212,.14);color:var(--cyan);
+    border:1px solid rgba(94,234,212,.4)}
+  .btn-del{flex:0 0 68px;background:rgba(255,90,90,.1);color:#ff9a9a;
+    border:1px solid rgba(255,90,90,.22);font-weight:500}
+
+  .empty{text-align:center;color:#7d93b5;font-size:14px;line-height:1.9;padding:30px 10px}
+  .empty .big{font-size:30px;display:block;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="bubbles"></div>
+
+<header class="hero">
+  <!-- 点击换图功能 -->
+  <div class="mascot-wrap" id="mascotBtn">
+    <img id="mascotImg" class="mascot-img" src="" alt="点击上传你的大肥鱼">
+    <div class="mascot-tip">点我换图</div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+  </div>
+  <h1>大肥鱼打卡</h1>
+  <div class="sub" id="sub">加载中…</div>
+</header>
+
+<section class="panel">
+  <div class="row">
+    <input type="date" id="startDate">
+    <span style="font-size:13px;color:var(--muted)">起始日期</span>
+  </div>
+  <div class="row">
+    <input type="text" id="newHabit" maxlength="20" placeholder="添加打卡项，如：背单词 / 跑步 / 早睡">
+    <button class="btn-main" id="addBtn">添加</button>
+  </div>
+  <div class="statline">
+    <span>今日完成 <b id="doneNum">0</b> / <span id="allNum">0</span></span>
+    <span>点色块可补卡</span>
+  </div>
+  <div class="progress">
+    <div class="fill" id="bar"></div>
+    <div class="fish" id="barFish">🐟</div>
+  </div>
+</section>
+
+<div id="list"></div>
+
+<script>
+/* ================= 图片上传与保存逻辑 ================= */
+const MASCOT_KEY = 'fish-mascot-img';
+const mascotBtn = document.getElementById('mascotBtn');
+const mascotImg = document.getElementById('mascotImg');
+const fileInput = document.getElementById('fileInput');
+
+// 初始默认图（纯文字占位）
+function setDefaultImg() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1e6fd9" rx="20"/><text x="100" y="110" font-size="60" text-anchor="middle" fill="white">🐳</text></svg>`;
+  mascotImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+// 页面加载时读取本地存的图
+const savedImg = localStorage.getItem(MASCOT_KEY);
+if (savedImg) {
+  mascotImg.src = savedImg;
+} else {
+  setDefaultImg();
+}
+
+// 点击触发上传
+mascotBtn.addEventListener('click', () => fileInput.click());
+
+// 处理上传的图（压缩并保存）
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      // 限制图片大小，防止存爆手机内存
+      const MAX_WIDTH = 400;
+      let width = img.width;
+      let height = img.height;
+      if (width > MAX_WIDTH) {
+        height = Math.round(height * MAX_WIDTH / width);
+        width = MAX_WIDTH;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      
+      mascotImg.src = dataUrl;
+      localStorage.setItem(MASCOT_KEY, dataUrl);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+
+/* ================= PWA：桌面图标动态生成 ================= */
+function makeIcon(size){
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const s = size / 180;
+  const bg = g.createLinearGradient(0, 0, 0, size);
+  bg.addColorStop(0, '#1e6fd9');
+  bg.addColorStop(1, '#08182f');
+  g.fillStyle = bg;
+  g.fillRect(0, 0, size, size);
+  g.save();
+  g.translate(size/2, size/2 + 6*s);
+  g.fillStyle = '#2b6fd6';
+  g.beginPath(); g.moveTo(-46*s, -4*s); g.lineTo(-70*s, -26*s); g.lineTo(-64*s, 6*s); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(-46*s, 8*s);  g.lineTo(-70*s, 30*s);  g.lineTo(-64*s, 2*s);  g.closePath(); g.fill();
+  const body = g.createLinearGradient(0, -42*s, 0, 42*s);
+  body.addColorStop(0, '#9ad8ff');
+  body.addColorStop(.55, '#4da3ff');
+  body.addColorStop(1, '#2b6fd6');
+  g.fillStyle = body;
+  g.beginPath(); g.ellipse(0, 0, 52*s, 42*s, 0, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#f7fbff';
+  g.beginPath(); g.moveTo(-28*s, 14*s); g.quadraticCurveTo(0, 8*s, 28*s, 14*s); g.lineTo(31*s, 40*s); g.quadraticCurveTo(0, 46*s, -31*s, 40*s); g.closePath(); g.fill();
+  g.fillStyle = '#0b1e3a';
+  g.beginPath(); g.ellipse(-16*s, -8*s, 8*s, 10*s, 0, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(16*s, -8*s, 8*s, 10*s, 0, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#fff';
+  g.beginPath(); g.arc(-13*s, -12*s, 3*s, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.arc(19*s, -12*s, 3 *s, 0, Math.PI*2); g.fill();
+  g.fillStyle = 'rgba(255,150,175,.65)';
+  g.beginPath(); g.ellipse(-33*s, 8*s, 7*s, 4*s, 0, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(33*s, 8*s, 7*s, 4*s, 0, 0, Math.PI*2); g.fill();
+  g.strokeStyle = '#0b1e3a'; g.lineWidth = 3*s; g.lineCap = 'round';
+  g.beginPath(); g.arc(0, 8*s, 10*s, 0.18*Math.PI, 0.82*Math.PI); g.stroke();
+  g.fillStyle = '#fff';
+  g.beginPath(); g.ellipse(-14*s, -40*s, 11*s, 8*s, -0.35, 0, Math.PI*2); g.fill100();
+  g.beginPath(); g.ellipse()14*s, -40*s,  :11*s, 8*s, 0. 35, 0, Math.PI*02); g.fill();
+  g.fillStyle = '#5eead4';
+  g.beginPath(); g.arc(0, -40*s, 5*s, 0, Math.PI*2); g.fill();
+  g.restore();
+  return c.toDataURL('image/png');
+}
+
+(function setupPWA(){
+  const icon180 = makeIcon(180);
+  const icon512 = makeIcon(512);
+  const apple = document.createElement('link');
+  apple.rel = 'apple-touch-icon';
+  apple.href = icon180;
+  document.head.appendChild(apple);
+  const manifest = {
+    name: '大肥鱼打卡', short_name: '肥鱼打卡', start_url: location.href, display: 'standalone',
+    background_color: '#0a1a33', theme_color: '#0a1a33',
+    icons: [{ src: icon180, sizes: '180x180', type: 'image/png' }, { src: icon512, sizes: '512x512', type: 'image/png' }]
+  };
+  const mLink = document.createElement('link');
+  mLink.rel = 'manifest';
+  mLink.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/json' }));
+  document.head.appendChild(mLink);
+})();
+
+/* ================= 打卡数据层 ================= */
+const KEY = 'fish-daka-v1';
+let state = load();
+let popTarget = null;
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.habits)) return s; }catch(e){}
+  return { startDate: todayStr(), habits: [] };
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function pad(n){ return String(n).padStart(2, '0'); }
+function fmt(d){ return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+function todayStr(){ return fmt(new Date()); }
+function parseDate(s){ const p = s.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); }
+function diffDays(a, b){ return Math.round((parseDate(b) - parseDate(a)) / 86400000); }
+function lastNDays(n, endStr){
+  const end = parseDate(endStr), arr = [];
+  for (let i = n - 1; i >= 0; i--){ const d = new Date(end); d.setDate(d.getDate() - i); arr.push(fmt(d)); }
+  return arr;
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function streak(records){
+  const d = new Date(); let cur = fmt(d);
+  if (!records[cur]){ d.setDate(d.getDate() - 1); cur = fmt(d); }
+  let n = 0; while (records[cur]){ n++; d.setDate(d.getDate() - 1); cur = fmt(d); } return n;
+}
+
+/* ================= 渲染 ================= */
+function render(){
+  const today = todayStr();
+  if (!state.startDate) state.startDate = today;
+  const dayNo = diffDays(state.startDate, today) + 1;
+  document.getElementById('sub').textContent = dayNo >= 1 ? today + ' · 第 ' + dayNo + ' 天' : '还有 ' + (1 - dayNo) + ' 天开始';
+  document.getElementById('startDate').value = state.startDate;
+  const habits = state.habits;
+  const doneToday = habits.filter(h => h.records[today]).length;
+  document.getElementById('doneNum').textContent = doneToday;
+  document.getElementById('allNum').textContent = habits.length;
+  const pct = habits.length ? (doneToday / habits.length *;
+  document.getElementById('bar').style.width = pct + '%';
+  const fish = document.getElementById('barFish');
+  fish.style.left = pct + '%';
+  fish.style.opacity = habits.length ? 1 : 0;
+  const list = document.getElementById('list');
+  if (!habits.length){
+    list.innerHTML = '<div class="panel empty"><span class="big">🐟</span>还没有打卡项<br>先养一条属于你的小鱼吧</div>';
+    return;
+  }
+  const days = lastNDays(14, today);
+  list.innerHTML = habits.map(h => {
+    const checked = !!h.records[today];
+    const st = streak(h.records);
+    const total = Object.keys(h.records).length;
+    const blocks = days.map(d => {
+      let cls = '';
+      if (h.records[d]) cls += ' on';
+      if (d === today) cls += ' today';
+      if (d < state.startDate) cls += ' before';
+      if (popTarget === h.id + '|' + d) cls += ' pop';
+      return '<i class="' + cls.trim() + '" data-id="' + h.id + '" data-date="' + d + '"></i>';
+    }).join('');
+    return '<div class="card"><div class="card-top"><div class="name">' + esc(h.name) + '</div>'
+      + '<div class="meta">连续 ' + st + ' 天 · 共 ' + total + ' 次</div></div>'
+      + '<div class="days">' + blocks + '</div><div class="actions">'
+      + '<button class="' + (checked ? 'btn-done' : 'btn-do') + '" data-act="toggle" data-id="' + h.id + '">'
+      + (checked ? '已完成 ✓' : '今日打卡') + '</button>'
+      + '<button class="btn-del" data-act="del" data-id="' + h.id + '">删除</button></div></div>';
+  }).join('');
+  popTarget = null;
+}
+
+/* ================= 交互 ================= */
+function addHabit(){
+  const inp = document.getElementById('newHabit');
+  const v = inp.value.trim();
+  if (!v) return;
+  if (state.habits.some(h => h.name === v)){ alert('已经有同名的打卡项了'); return; }
+  state.habits.push({ id: 'h' + Date.now(), name: v.slice(0, 20), records: {} });
+  inp.value = ''; save(); render(); inp.focus();
+}
+function toggleDate(id, date){
+  const h = state.habits.find(x => x.id === id);
+  if (!h || date < state.startDate) return;
+  if (h.records[date]) delete h.records[date];
+  else { h.records[date] = true; popTarget = id + '|' + date; }
+  save(); render();
+}
+document.getElementById('addBtn').addEventListener('click', addHabit);
+document.getElementById('newHabit').addEventListener('keydown', e => { if (e.key === 'Enter') addHabit(); });
+document.getElementById('startDate').addEventListener('change', e => { if (!e.target.value) return; state.startDate = e.target.value; save(); render(); });
+document.getElementById('list').addEventListener('click', e => {
+  const cell = e.target.closest('i[data-date]');
+  if (cell){ toggleDate(cell.dataset.id, cell.dataset.date); return; }
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const h = state.habits.find(x => x.id === btn.dataset.id);
+  if (!h) return;
+  if (btn.dataset.act === 'toggle'){
+    const t = todayStr();
+    if (h.records[t]) delete h.records[t];
+    else { h.records[t] = true; popTarget = h.id + '|' + t; }
+  } else if (btn.dataset.act === 'del'){
+    if (!confirm('删除「' + h.name + '」？历史记录也会一起删掉。')) return;
+    state.habits = state.habits.filter(x => x.id !== btn.dataset.id);
+  }
+  save(); render();
+});
+
+/* ================= 背景气泡 ================= */
+(function makeBubbles(){
+  const wrap = document.querySelector('.bubbles');
+  for (let i = 0; i < 14; i++){
+    const b = document.createElement('i');
+    const size = 6 + Math.random() * 26;
+    b.style.width = b.style.height = size + 'px';
+    b.style.left = Math.random() * 100 + '%';
+    b.style.animationDuration = (11 + Math.random() * 14) + 's';
+    b.style.animationDelay = (-Math.random() * 22) + 's';
+    wrap.appendChild(b);
+  }
+})();
+
+render();
+</script>
+</body>
+</html>
